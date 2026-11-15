@@ -119,15 +119,10 @@ class Table {
             return "<p>No entries found for this category.</p>";
         }
 
-        // Dynamically get object property keys to build headers
         const keys = Object.keys(this.dataItems[0]);
 
         let tableHeader = "<thead><tr>";
-        for (const key of keys) {
-            let formattedHeader = key.replace(/([A-Z])/g, " $1");
-            formattedHeader = formattedHeader.charAt(0).toUpperCase() + formattedHeader.slice(1);
-            tableHeader += "<th>" + formattedHeader + "</th>";
-        };
+        tableHeader += keys.map(key => `<th>${key}</th>`).join('');
         tableHeader += "</tr></thead>";
 
         let tableBody = "<tbody>";
