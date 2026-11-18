@@ -5,111 +5,45 @@ const loadData = (key, defaultData) => {
 
 let suspects = loadData("murdoku_suspects", [
     {
-        "id": 1,
-        "name": "Lady Eleanor Vance",
-        "alias": "The Widow",
-        "alibi": "Reading in the Library",
-        "motive": "Inheritance money",
-        "suspicionLevel": "High",
-        "isGuilty": true
-    },
-    {
-        "id": 2,
-        "name": "Colonel Arthur Mustard",
-        "alias": "The Veteran",
-        "alibi": "Playing Billiards",
-        "motive": "Old feud",
-        "suspicionLevel": "Medium",
-        "isGuilty": false
-    },
-    {
-        "id": 3,
-        "name": "Doctor Gregory Black",
-        "alias": "The Physician",
-        "alibi": "Preparing medicine",
-        "motive": "Blackmail threat",
-        "suspicionLevel": "Low",
+        "id": 0,
+        "name": "",
+        "alias": "",
+        "alibi": "",
+        "motive": "",
+        "suspicionLevel": "",
         "isGuilty": false
     }
 ]);
 
 let clues = loadData("murdoku_clues", [
     {
-        "id": 101,
-        "title": "Torn Fabric",
-        "type": "Physical Evidence",
-        "foundLocation": "Conservatory",
-        "relevance": "Matches velvet gown",
-        "isVerified": true
-    },
-    {
-        "id": 102,
-        "title": "Burned Letter",
-        "type": "Documentary",
-        "foundLocation": "Fireplace",
-        "relevance": "Mentions gambling debt",
-        "isVerified": true
-    },
-    {
-        "id": 103,
-        "title": "Muddy Footprints",
-        "type": "Trace Evidence",
-        "foundLocation": "Study Hall",
-        "relevance": "Size 8 boot imprint",
+        "id": 0,
+        "title": "",
+        "type": "",
+        "foundLocation": "",
+        "relevance": "",
         "isVerified": false
     }
 ]);
 
 let rooms = loadData("murdoku_rooms", [
     {
-        "id": 201,
-        "roomName": "Grand Library",
-        "floor": "Ground Floor",
+        "id": 0,
+        "roomName": "",
+        "floor": "",
         "crimeScene": false,
-        "status": "Searched",
-        "discoveredCluesCount": 3
-    },
-    {
-        "id": 202,
-        "roomName": "Lord's Study",
-        "floor": "First Floor",
-        "crimeScene": true,
-        "status": "Sealed",
-        "discoveredCluesCount": 5
-    },
-    {
-        "id": 203,
-        "roomName": "Wine Cellar",
-        "floor": "Basement",
-        "crimeScene": false,
-        "status": "Unsearched",
+        "status": "",
         "discoveredCluesCount": 0
     }
 ]);
 
 let objects = loadData("murdoku_objects", [
     {
-        "id": 301,
-        "objectName": "Antique Dagger",
-        "category": "Weapon",
-        "material": "Damascus Steel",
-        "owner": "Colonel Arthur Mustard",
-        "isMurderWeapon": true
-    },
-    {
-        "id": 302,
-        "objectName": "Pocket Watch",
-        "category": "Personal Item",
-        "material": "Gold",
-        "owner": "Doctor Gregory Black",
-        "isMurderWeapon": false
-    },
-    {
-        "id": 303,
-        "objectName": "Poison Vial",
-        "category": "Chemical",
-        "material": "Glass",
-        "owner": "Unknown",
+        "id": 0,
+        "objectName": "",
+        "category": "",
+        "material": "",
+        "owner": "",
         "isMurderWeapon": false
     }
 ]);
@@ -177,6 +111,7 @@ class Table {
         tableBody += this.addInputRow(keys);
 
         for (const dataItem of this.dataItems) {
+            if (dataItem.id === 0) continue;
             tableBody += "<tr>";
             for (const key of keys) {
                 let cellValue = dataItem[key];
@@ -223,6 +158,7 @@ class Tab {
     };
 
     show(isShown) {
+        this.refreshContent();
         const contentClassList = this.content.classList;
         const tabClassList = this.tab.classList;
         if (isShown) {
@@ -255,6 +191,15 @@ class App {
         rooms = loadData("murdoku_rooms", rooms);
         objects = loadData("murdoku_objects", objects);
     }
+    refreshContent(){
+        for (const tab in this.tabs){
+            if (tab.id === "suspects") tab.dataItems = suspects;
+            if (tab.id === "clues") tab.dataItems = clues;
+            if (tab.id === "rooms") tab.dataItems = rooms;
+            if (tab.id === "objects") tab.dataItems = objects;
+            tab.refreshContent();
+        }
+    }
     start() {
         const buttonContainer = document.getElementById("tab-buttons-container");
         const contentContainer = document.getElementById("tab-contents-container");
@@ -265,19 +210,11 @@ class App {
         document.addEventListener('blur', (e) => this.handleCellBlur(e), true);
         document.addEventListener('keydown', (e) => this.handleCellKeydown(e));
 
-        // Завдання №4.3: Синхронізація між вкладками браузера (оновлюємо всі дані та перемальовуємо таби)
+
         window.addEventListener('storage', (e) => {
             if (e.key && e.key.startsWith("murdoku_")) {
                 this.loadAllData();
-
-                // Оновлюємо дані у кожному табі та перемальовуємо інтерфейс
-                this.tabs.forEach(tab => {
-                    if (tab.id === "suspects") tab.dataItems = suspects;
-                    if (tab.id === "clues") tab.dataItems = clues;
-                    if (tab.id === "rooms") tab.dataItems = rooms;
-                    if (tab.id === "objects") tab.dataItems = objects;
-                    tab.refreshContent();
-                });
+                this.refreshContent();
             }
         });
 
@@ -289,10 +226,12 @@ class App {
         if (targetTab) {
             localStorage.setItem(`murdoku_${tableId}`, JSON.stringify(targetTab.dataItems));
         }
+
     }
 
     handleClick(e) {
         const activeTabId = e.target.dataset["id"];
+
         if (activeTabId && e.target.classList.contains("tab-button")) {
             for (const tab of this.tabs) {
                 tab.show(tab.id === activeTabId);
@@ -341,7 +280,7 @@ class App {
 
         let numFound = 0;
         const itemsInRow = Object.values(itemToDelete).filter(value => {
-            if (typeof(value) === "boolean" || typeof(value) === "number") return false;
+            if (typeof(value) === "boolean" || typeof(value) === "number" || value === 0 || value === "") return false;
             return true;
         });
 
